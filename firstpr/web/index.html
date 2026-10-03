@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FirstPR: draft your first pull request</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+Bengali:wght@600;700&display=swap">
+<style>
+:root{--bg:#faf6ee;--panel:#fffdf8;--ink:#2a1215;--moss:#5a0f14;--moss2:#7a1b21;--pump:#c1121f;--pumpd:#8f0d17;--gold:#c8941c;--line:#e8dcc6;--mute:#6d5a52;--ok:#1f7a4d;--warn:#8f5400;--bad:#b42318}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Bricolage Grotesque",system-ui,sans-serif;padding-bottom:120px}
+button,input,textarea{font:inherit}a{color:var(--pumpd)}
+:focus-visible{outline:3px solid var(--pump);outline-offset:2px}
+.btn{border:0;border-radius:10px;padding:12px 20px;background:var(--pump);color:#fff;font-weight:600;cursor:pointer;min-height:44px}
+.btn:hover{background:var(--pumpd)}.btn:disabled{opacity:.55;cursor:wait}
+.ghost{background:transparent;color:var(--pumpd);border:1.5px solid var(--pump);padding:7px 14px;min-height:38px;font-size:.88rem}
+.ghost:hover{background:var(--pump);color:#fff}
+input[type=text],input[type=email],input[type=password],textarea{width:100%;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+label{display:grid;gap:5px;font-weight:600;font-size:.92rem}
+/* sign in */
+.auth{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr}
+.hero{background:var(--moss);color:#fff6e6;padding:clamp(28px,6vw,80px);display:flex;flex-direction:column;justify-content:center;gap:18px}
+.hero h1{font-size:clamp(2.3rem,5.6vw,4.4rem);line-height:.98;letter-spacing:-.04em;font-weight:800;margin:0;max-width:11ch}
+.hero p{margin:0;max-width:44ch;color:#f0d9c0}
+.hero ul{margin:0;padding-left:18px;color:#f0d9c0;max-width:44ch}.hero li{margin:4px 0}
+.card{padding:clamp(24px,5vw,64px);display:flex;flex-direction:column;justify-content:center;width:100%;max-width:480px;margin:0 auto}
+.card form{display:grid;gap:14px}
+.tabs{display:flex;gap:6px;margin-bottom:18px;background:#f0e4cf;border-radius:12px;padding:4px}
+.tab{flex:1;border:0;background:transparent;border-radius:9px;padding:10px;font-weight:600;cursor:pointer;color:var(--mute)}
+.tab[aria-pressed=true]{background:#fff;color:var(--ink)}
+.err{color:var(--bad);min-height:1.4em;margin:0}
+/* app shell */
+.shell{display:grid;grid-template-columns:276px 1fr;min-height:100vh}
+aside{background:var(--moss);color:#f6e9d2;padding:18px 14px;position:sticky;top:0;height:100vh;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.brand{font-weight:800;font-size:1.3rem;letter-spacing:-.03em}
+.side .btn{width:100%}
+#hist{list-style:none;margin:0;padding:0;display:grid;gap:4px;flex:1;align-content:start}
+#hist li{display:flex;align-items:stretch}
+.h{flex:1;text-align:left;background:transparent;border:0;color:inherit;padding:8px 10px;border-radius:8px;cursor:pointer;display:grid;min-width:0}
+.h:hover,.h.on{background:var(--moss2)}
+.h b{font-weight:600;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.h span{font-size:.78rem;color:#d9b99a;display:block}
+.x{background:transparent;border:0;color:#d9b99a;cursor:pointer;width:36px;border-radius:8px;font-size:1.1rem}.x:hover{background:var(--moss2);color:#fff}
+.empty{color:#d9b99a;font-size:.88rem;padding:6px 10px}
+.me{border-top:1px solid var(--moss2);padding-top:12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.me button{background:transparent;border:1px solid #b98d6a;color:inherit;border-radius:8px;padding:6px 10px;cursor:pointer}
+.top{display:none;align-items:center;gap:12px;padding:10px 16px;background:var(--moss);color:#fff;position:sticky;top:0;z-index:10}
+.top button{background:transparent;border:1px solid #b98d6a;color:#fff;border-radius:8px;padding:8px 12px;cursor:pointer}
+.scrim{display:none}
+main{padding:clamp(18px,4vw,52px);max-width:880px;width:100%}
+main h1{font-size:clamp(1.9rem,5vw,3.2rem);line-height:1;letter-spacing:-.035em;font-weight:800;margin:0 0 10px;max-width:14ch}
+.lede{color:var(--mute);max-width:54ch;margin:0 0 24px}
+#f{display:grid;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:clamp(14px,3vw,22px)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.chk{display:flex;gap:8px;align-items:center;font-weight:400;color:var(--mute)}
+.file{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-weight:400;color:var(--mute);font-size:.9rem}
+#shotname{color:var(--ink);font-weight:600}
+#status{min-height:1.6em;margin:16px 0 0;color:var(--mute)}
+#error{display:none;margin-top:14px;padding:12px 14px;border-left:4px solid var(--bad);background:#fff;color:var(--bad);overflow-wrap:anywhere}
+.rail{border-left:2px solid var(--pump);margin:26px 0 0 7px;padding-left:clamp(16px,4vw,26px)}
+.node{position:relative;margin-bottom:28px}
+.node::before{content:"";position:absolute;left:calc(-1 * clamp(16px,4vw,26px) - 9px);top:6px;width:14px;height:14px;border-radius:50%;background:var(--bg);border:3px solid var(--pump)}
+h2{font-size:1.15rem;margin:0 0 8px;letter-spacing:-.01em}
+.issue{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px}
+.issue h3{margin:0 0 6px;font-size:1.02rem}.issue a{color:inherit}.issue p{margin:4px 0 10px}
+.meta{display:flex;gap:12px;align-items:center;flex-wrap:wrap;color:var(--mute);font-size:.82rem;margin-bottom:6px}
+.bar{width:90px;height:6px;background:var(--line);border-radius:3px;overflow:hidden}.bar i{display:block;height:100%;background:var(--pump)}
+pre{margin:0;padding:12px;background:#2a1215;color:#f7ead4;border-radius:8px;white-space:pre-wrap;overflow-wrap:anywhere;font:.84rem/1.5 "JetBrains Mono",ui-monospace,monospace}
+.copy{display:grid;gap:6px;margin-bottom:14px}.top2{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:.9rem;gap:8px}
+ol,ul{padding-left:20px;margin:6px 0}code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.86em;overflow-wrap:anywhere}
+.checks{list-style:none;padding:0}.checks li{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+.checks b{min-width:3.2em;font-size:.82rem}.s-ok b{color:var(--ok)}.s-fail b{color:var(--bad)}.s-warn b{color:var(--warn)}.s-todo b{color:var(--mute)}
+details{color:var(--mute);font-size:.9rem}
+.chat{display:grid;gap:8px;margin-bottom:10px}
+.msg{padding:10px 12px;border-radius:12px;max-width:92%;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.user{background:var(--moss);color:#fff;justify-self:end}.msg.ai{background:var(--panel);border:1px solid var(--line)}
+.ask{display:flex;gap:8px}.ask input{flex:1}
+/* pumpkin */
+#devi{position:fixed;right:clamp(6px,2vw,22px);bottom:0;width:clamp(78px,11vw,128px);pointer-events:none;z-index:15}body.landing #devi{display:none}
+#devi svg{display:block;width:100%;height:auto}
+.eye{transform-box:fill-box;transform-origin:center}
+@media (prefers-reduced-motion:no-preference){.eye{animation:blink 7s infinite}@keyframes blink{0%,95%,100%{transform:scaleY(1)}97.5%{transform:scaleY(.08)}}.node{animation:in .3s ease-out}@keyframes in{from{opacity:0;transform:translateY(6px)}}}
+@media (max-width:959px){
+ .shell{grid-template-columns:1fr}.top{display:flex}
+ aside{position:fixed;inset:0 auto 0 0;width:min(86vw,310px);z-index:30;transform:translateX(-104%);transition:transform .22s}
+ aside.open{transform:none}.scrim.on{display:block;position:fixed;inset:0;background:rgba(10,20,12,.5);z-index:25}
+}
+@media (max-width:800px){.auth{grid-template-columns:1fr}.hero{padding:32px 22px 28px}}
+@media (max-width:560px){.two{grid-template-columns:1fr}.btn{width:100%}.ghost{width:auto}.ask{flex-direction:column}.ask .btn{width:100%}}
+
+.paar{height:16px;background:repeating-linear-gradient(90deg,var(--pump) 0 22px,var(--gold) 22px 27px,var(--pump) 27px 49px,#fff 49px 53px)}
+.nav{display:flex;justify-content:space-between;align-items:center;padding:16px clamp(18px,5vw,64px);max-width:1240px;margin:0 auto}
+.nav .brand{font-size:1.45rem;color:var(--pump)}
+.lhero{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(16px,4vw,56px);align-items:center;padding:clamp(8px,3vw,40px) clamp(18px,5vw,64px) 36px;max-width:1240px;margin:0 auto}
+.tag{display:inline-block;padding:6px 14px;border:1.5px solid var(--gold);border-radius:999px;color:var(--pumpd);font-weight:600;font-size:.9rem;margin:0 0 18px;background:#fff}
+.lhero h1{font-size:clamp(2.6rem,6.6vw,5.2rem);line-height:.96;letter-spacing:-.045em;font-weight:800;margin:0 0 .35em;max-width:13ch}
+.sub{font-size:clamp(1.02rem,2vw,1.25rem);color:var(--mute);max-width:46ch;margin:0 0 26px}
+.btn.big{padding:15px 28px;font-size:1.06rem}.link2{font-weight:600;color:var(--ink)}
+.fine{color:var(--mute);font-size:.88rem;margin:18px 0 0}
+.art{display:grid;place-items:center}#heroDevi{width:min(100%,430px)}
+#heroDevi svg{display:block;width:100%;height:auto;filter:drop-shadow(0 18px 24px rgba(90,15,20,.28))}
+.pv{max-width:780px;margin:0 auto;padding:0 clamp(18px,5vw,64px)}
+.pv .box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 24px 44px -26px rgba(90,15,20,.45)}
+.lab{font-size:.82rem;color:var(--mute);margin:0 0 8px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:clamp(18px,3vw,44px);max-width:1100px;margin:0 auto;padding:clamp(36px,6vw,80px) clamp(18px,5vw,64px) 24px}
+.steps .n{font:700 3rem/1 "Noto Sans Bengali",sans-serif;color:var(--gold)}.steps h3{margin:6px 0;font-size:1.2rem}.steps p{margin:0;color:var(--mute)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:0 18px 36px}
+.chips span{padding:7px 14px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:.92rem}
+.foot{text-align:center;padding:24px 18px 44px;color:var(--mute)}.foot b{font-family:"Noto Sans Bengali",sans-serif;color:var(--pumpd)}
+.shubho{font-family:"Noto Sans Bengali",sans-serif;color:var(--gold);font-weight:700;margin-top:-8px}
+.link{background:none;border:0;color:var(--pumpd);cursor:pointer;padding:0;margin-bottom:16px;text-align:left;font-weight:600}
+.brandbtn{background:none;border:0;color:inherit;text-align:left;padding:0;cursor:pointer}
+@media (prefers-reduced-motion:no-preference){.lhero>div{animation:in .6s ease-out both}.lhero>.art{animation-delay:.14s}}
+@media (max-width:800px){.lhero{grid-template-columns:1fr}#heroDevi{width:min(78vw,340px)}}
+.tools{display:flex;gap:8px;flex-wrap:wrap}.tool{background:transparent;border:1px solid #b98d6a;color:inherit;border-radius:8px;padding:6px 10px;cursor:pointer}
+.board{max-width:1000px;margin:0 auto;padding:8px clamp(18px,5vw,64px) 40px;text-align:center}.board h2{font-size:1.5rem;margin-bottom:14px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.tile{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}.tile b{display:block;font-size:2.4rem;letter-spacing:-.03em;color:var(--pump)}.tile span{color:var(--mute);font-size:.9rem}
+dialog{border:1px solid var(--line);border-radius:14px;padding:22px;max-width:min(92vw,440px);background:var(--panel);color:var(--ink)}
+dialog::backdrop{background:rgba(40,10,12,.5)}dialog form{display:grid;gap:12px}dialog p{margin:0;color:var(--mute)}
+@media (max-width:959px){.deskhome{display:none}}
+.deskhome{font-size:.95rem}
+#steps{list-style:none;padding:0;margin:10px 0 0;display:grid;gap:4px;font-size:.92rem;color:var(--mute)}
+#steps li::before{content:"○  "}#steps li.done::before{content:"✓  ";color:var(--ok)}
+.prog{background:var(--moss2);border-radius:10px;padding:10px 12px;font-size:.9rem;display:grid;gap:2px}
+.prog .bar{width:100%;height:8px;background:#4a1a1f;margin-top:6px}.prog .bar i{background:var(--gold)}.prog small{color:#d9b99a}
+#track .lab{margin:0 0 8px}
+</style>
+</head>
+<body>
+
+<section id="landing">
+  <div class="paar"></div>
+  <header class="nav"><b class="brand">FirstPR</b><div class="row" style="gap:8px"><button class="btn ghost langtog" type="button">বাংলা</button><button class="btn ghost" id="navGo" data-go>Sign in</button></div></header>
+  <div class="lhero">
+    <div>
+      <p class="tag">Hacktoberfest × Durga Puja 2026</p>
+      <h1>Your first open-source pull request, this Pujo.</h1>
+      <p class="sub">Paste any GitHub project and your skills. Gemma 4 reads it, finds the issue worth taking, and drafts the branch, commit and PR the way that project's maintainers expect.</p>
+      <div class="row"><button class="btn big" id="heroGo" data-go>Get started</button><a class="link2" href="#how">See how it works</a></div>
+      <p class="fine">Free, open source and built on Gemma 4.</p>
+    </div>
+    <div class="art"><div id="heroDevi"></div></div>
+  </div>
+  <div class="pv" aria-hidden="true"><p class="lab">Example result</p><div class="box">
+    <div class="meta"><span>#2041</span><span class="bar"><i style="width:94%"></i></span><span>fit 94</span><span>easy</span></div>
+    <h3 style="margin:0 0 6px">Add Windows install steps to the docs</h3>
+    <p style="margin:0 0 10px">Matches your docs skills and touches one file. Start with the installation page.</p>
+    <ul class="checks"><li class="s-ok"><b>ok</b><span>Conventional Commits format</span></li><li class="s-fail"><b>fix</b><span>DCO sign-off was missing <small>Gemma added it</small></span></li><li class="s-todo"><b>todo</b><span>Run before the PR: npm test</span></li></ul></div></div>
+  <div class="steps" id="how">
+    <div><div class="n">১</div><h3>It reads the project</h3><p>README, CONTRIBUTING file, PR template and the open issues, all in one long-context pass.</p></div>
+    <div><div class="n">২</div><h3>It ranks what fits you</h3><p>Five issues scored against your skills, each with a reason and a first step.</p></div>
+    <div><div class="n">৩</div><h3>It drafts and checks</h3><p>Branch, commit and PR written, then tested against the project's own rules and fixed.</p></div>
+  </div>
+  <div class="board" id="board" hidden><h2>Measured on real repositories</h2><div class="tiles" id="tiles"></div><p class="lab" id="boardnote"></p></div>
+  <div class="chips"><span>Saved history</span><span>Mentor chat</span><span>Screenshot input</span><span>Google Search grounding</span><span>Agent Skill included</span></div>
+  <div class="paar"></div>
+  <p class="foot"><b>শুভ শারদীয়া</b><br>Built for Hacktoberfest Hack Day at Kalyani Government Engineering College. MIT licensed.</p>
+</section>
+
+<section class="auth" id="auth" hidden>
+  <div class="hero">
+    <div class="brand">FirstPR</div>
+    <h1>Make your first pull request this Pujo.</h1>
+    <p>Paste a project and what you can do. Get the issue worth taking, the code to read, and a branch, commit and PR written in the project's own style.</p>
+    <ul><li>Issues ranked for your skills</li><li>Drafts checked against CONTRIBUTING rules</li><li>Every search saved to your account</li></ul>
+  </div>
+  <div class="card">
+    <button type="button" class="link" data-home>← Back to home</button>
+    <div class="tabs"><button class="tab" data-mode="login" aria-pressed="true">Sign in</button><button class="tab" data-mode="signup" aria-pressed="false">Create account</button></div>
+    <form id="authForm">
+      <label id="nameRow" hidden>Name <input type="text" id="aname" autocomplete="name" maxlength="60"></label>
+      <label>Email <input type="email" id="aemail" autocomplete="email" required></label>
+      <label>Password <input type="password" id="apass" autocomplete="current-password" minlength="8" required></label>
+      <p class="err" id="autherr" role="alert"></p>
+      <button class="btn" id="authGo">Sign in</button>
+    </form>
+  </div>
+</section>
+
+<div class="shell" id="app" hidden>
+  <div class="scrim" id="scrim"></div>
+  <aside id="side" aria-label="Saved work">
+    <button class="brand brandbtn" data-home>FirstPR</button><div class="shubho">শুভ শারদীয়া</div>
+    <button class="btn" id="newBtn">New search</button>
+    <div class="prog" id="prog"></div>
+    <ul id="hist"></ul>
+    <div class="tools"><button class="tool" data-home type="button">Home</button><button class="tool langtog" type="button">বাংলা</button><button class="tool" id="keyBtn" type="button">Gemini key</button></div>
+    <div class="me"><span id="who"></span><button id="logout">Sign out</button></div>
+  </aside>
+  <div>
+    <div class="top"><button id="menu" aria-label="Open saved work" aria-expanded="false">Menu</button><b>FirstPR</b><button data-home type="button" style="margin-left:auto">Home</button></div>
+    <main>
+      <button type="button" class="link deskhome" data-home>← Back to home</button>
+      <h1>Your first pull request, drafted.</h1>
+      <p class="lede">Gemma 4 reads the project, picks issues that suit you, then drafts the branch, commit and PR, checked against the project's own rules.</p>
+      <form id="f">
+        <label>Repository <input type="text" id="repo" placeholder="https://github.com/owner/repo" required></label>
+        <label>Your skills <input type="text" id="skills" placeholder="Python, writing docs, a little React"></label>
+        <div class="file"><input type="file" id="shot" accept="image/png,image/jpeg,image/webp" hidden>
+          <button type="button" class="btn ghost" id="shotBtn">Attach a screenshot</button>
+          <button type="button" class="btn ghost" id="micBtn" hidden>Speak your skills</button>
+          <span id="shotname">Optional. Gemma uses it when you draft a PR.</span></div>
+        <div class="row"><button class="btn" id="go">Find my issue</button>
+          <label class="chk"><input type="checkbox" id="ground"> Add Google Search context</label></div>
+      </form>
+      <p class="lab" id="modeLine"></p>
+      <div id="status" role="status" aria-live="polite"></div>
+      <ul id="steps"></ul>
+      <div id="error" role="alert"></div>
+      <div id="out" class="rail" hidden></div>
+    </main>
+  </div>
+</div>
+
+<dialog id="keyDlg"><form method="dialog" id="keyForm"><h2>Model settings</h2>
+  <p>Free from Google AI Studio. It stays in this browser and is sent only with your own requests, never stored on the server.</p>
+  <input type="password" id="keyIn" autocomplete="off" placeholder="AIza…">
+  <label class="chk"><input type="checkbox" id="localChk"> Run Gemma locally with Ollama (private, offline, no key needed)</label>
+  <p id="localInfo" class="lab"></p>
+  <div class="row"><button class="btn" value="save">Save</button><button class="btn ghost" type="button" id="keyClear">Remove</button><button class="btn ghost" value="x">Close</button></div></form></dialog>
+<div id="devi" aria-hidden="true"></div>
+<template id="deviSvg"><svg viewBox="0 0 200 250" role="img" aria-label="Maa Durga">
+<path d="M14 250V112a86 86 0 0 1 172 0V250z" fill="#7a1b21"/>
+<path d="M14 250V112a86 86 0 0 1 172 0V250" fill="none" stroke="#c8941c" stroke-width="5"/>
+<path d="M30 250V114a70 70 0 0 1 140 0V250" fill="none" stroke="#e6b94a" stroke-width="1.8" stroke-dasharray="2 6" stroke-linecap="round"/>
+<g class="arms" fill="none" stroke="#e8b676" stroke-width="7" stroke-linecap="round">
+<path d="M70 178Q34 170 26 150"/><path d="M68 172Q26 150 20 122"/><path d="M68 166Q30 128 32 96"/><path d="M70 162Q40 108 52 74"/><path d="M74 158Q54 108 74 62"/>
+<g fill="#e8b676" stroke="none"><circle cx="26" cy="150" r="6"/><circle cx="20" cy="122" r="6"/><circle cx="32" cy="96" r="6"/><circle cx="52" cy="74" r="6"/><circle cx="74" cy="62" r="6"/></g></g>
+<path d="M50 250Q54 184 100 178Q146 184 150 250z" fill="#c1121f"/>
+<path d="M76 184Q100 210 124 184" fill="none" stroke="#e6b94a" stroke-width="4"/>
+<rect x="90" y="146" width="20" height="36" rx="8" fill="#e0a860"/>
+<ellipse cx="100" cy="112" rx="37" ry="45" fill="#f0c27b"/>
+<path d="M62 106Q62 62 100 60Q138 62 138 106Q122 80 100 80Q78 80 62 106z" fill="#1c0b0d"/>
+<path d="M62 76L70 40 84 60 100 24 116 60 130 40 138 76Q100 64 62 76z" fill="#d9a521" stroke="#8a620d" stroke-width="2"/>
+<circle cx="100" cy="46" r="5" fill="#c1121f"/><ellipse cx="100" cy="90" rx="3.2" ry="6.5" fill="#c1121f"/>
+<g stroke="#1c0b0d" stroke-width="3.4" fill="none" stroke-linecap="round"><path d="M66 102Q80 92 95 100"/><path d="M134 102Q120 92 105 100"/></g>
+<g class="eye"><path d="M64 112Q80 98 96 112Q80 126 64 112z" fill="#fff8e8" stroke="#1c0b0d" stroke-width="2"/><circle class="pupil" cx="80" cy="112" r="4.4" fill="#1c0b0d"/></g>
+<g class="eye"><path d="M104 112Q120 98 136 112Q120 126 104 112z" fill="#fff8e8" stroke="#1c0b0d" stroke-width="2"/><circle class="pupil" cx="120" cy="112" r="4.4" fill="#1c0b0d"/></g>
+<path d="M100 116L97 131Q100 134 103 131" fill="none" stroke="#c98f48" stroke-width="2" stroke-linecap="round"/>
+<circle cx="92" cy="132" r="3.6" fill="none" stroke="#d9a521" stroke-width="2"/>
+<path d="M89 141Q100 149 111 141Q100 144 89 141z" fill="#a4161a" stroke="#a4161a" stroke-width="2" stroke-linejoin="round"/>
+<circle cx="62" cy="126" r="5" fill="#d9a521"/><circle cx="138" cy="126" r="5" fill="#d9a521"/>
+</svg></template>
+
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const BN = {
+ "Your first open-source pull request, this Pujo.": "এই পুজোয় আপনার প্রথম ওপেন-সোর্স পুল রিকোয়েস্ট।",
+ "Get started": "শুরু করুন", "Open your workspace": "আপনার কাজের জায়গা খুলুন", "Open workspace": "কাজের জায়গা খুলুন", "See how it works": "কীভাবে কাজ করে দেখুন",
+ "Sign in": "সাইন ইন", "Create account": "অ্যাকাউন্ট খুলুন", "Sign out": "সাইন আউট", "← Back to home": "← হোমে ফিরুন", "Email": "ইমেল", "Password": "পাসওয়ার্ড", "Name": "নাম",
+ "Make your first pull request this Pujo.": "এই পুজোয় করুন আপনার প্রথম পুল রিকোয়েস্ট।",
+ "It reads the project": "প্রজেক্টটি পড়ে", "It ranks what fits you": "আপনার জন্য সেরাগুলো বাছে", "It drafts and checks": "লেখে এবং যাচাই করে",
+ "Example result": "উদাহরণ", "Measured on real repositories": "বাস্তব রিপোজিটরিতে মাপা ফল",
+ "Your first pull request, drafted.": "আপনার প্রথম পুল রিকোয়েস্ট, তৈরি।", "Repository": "রিপোজিটরি", "Your skills": "আপনার দক্ষতা",
+ "Attach a screenshot": "স্ক্রিনশট যোগ করুন", "Speak your skills": "বলে দিন আপনার দক্ষতা", "Listening…": "শুনছি…", "Find my issue": "আমার ইস্যু খুঁজুন",
+ "Add Google Search context": "গুগল সার্চের তথ্য যোগ করুন", "New search": "নতুন সার্চ", "Gemini key": "জেমিনি কী",
+ "What the issue needs": "ইস্যুটির দরকার কী", "Code to read first": "প্রথমে যে কোড পড়বেন", "Plan": "পরিকল্পনা", "Verify:": "যাচাই:", "Watch out for:": "সতর্কতা:",
+ "Start with:": "শুরু করুন:", "Draft my PR for": "পিআর তৈরি করুন:", "Spam guard": "স্প্যাম গার্ড", "Your branch, commit and PR": "আপনার ব্রাঞ্চ, কমিট ও পিআর",
+ "Git commands": "গিট কমান্ড", "Checked against this project's rules": "প্রজেক্টের নিয়মের সাথে যাচাই", "Ask your mentor": "মেন্টরকে জিজ্ঞাসা করুন", "Ask": "জিজ্ঞাসা", "Copy": "কপি", "Home": "হোম", "Track your pull request": "আপনার পুল রিকোয়েস্ট ট্র্যাক করুন"};
+let lang = localStorage.getItem("fp_lang") || "en";
+const tr = k => (lang === "bn" && BN[k]) || k, orig = new WeakMap();
+function applyLang() {
+  document.documentElement.lang = lang;
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {acceptNode: n => n.parentNode.closest("script,template,style") ? 2 : 1});
+  for (let n; n = w.nextNode();) {
+    const v = n.nodeValue.trim(), o = orig.get(n) || v;
+    if (BN[o]) { orig.set(n, o); n.nodeValue = n.nodeValue.replace(v, lang === "bn" ? BN[o] : o); }
+  }
+  $$(".langtog").forEach(b => b.textContent = lang === "bn" ? "English" : "বাংলা"); setCta();
+}
+let me = null, mode = "login", last = {repo: "", skills: ""}, shot = null, active = null, planRun = null, ticker;
+
+async function api(path, o = {}) {
+  const r = await fetch(path, {method: o.method || "GET", headers: {...(o.body ? {"Content-Type": "application/json"} : {}), ...(localStorage.getItem("fp_key") ? {"X-Gemini-Key": localStorage.getItem("fp_key")} : {}), ...(localStorage.getItem("fp_local") === "1" ? {"X-Backend": "ollama"} : {})}, body: o.body ? JSON.stringify(o.body) : undefined});
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401 && !path.match(/login|signup/)) { showAuth(); throw new Error("Please sign in."); }
+  if (!r.ok) throw new Error(j.detail || "Request failed");
+  return j;
+}
+function view(n) { for (const v of ["landing", "auth", "app"]) $("#" + v).hidden = v !== n; document.body.classList.toggle("landing", n === "landing"); window.scrollTo({top: 0}); }
+function setCta() { $("#navGo").textContent = tr(me ? "Open workspace" : "Sign in"); $("#heroGo").textContent = tr(me ? "Open your workspace" : "Get started"); }
+function showAuth() { view("auth"); }
+function showApp(u) { me = u; setCta(); view("app"); $("#who").textContent = u.name; loadHistory(); }
+
+/* sign in */
+$$(".tab").forEach(b => b.onclick = () => {
+  mode = b.dataset.mode; $$(".tab").forEach(x => x.setAttribute("aria-pressed", x === b));
+  $("#nameRow").hidden = mode !== "signup"; $("#authGo").textContent = mode === "signup" ? "Create account" : "Sign in";
+  $("#apass").autocomplete = mode === "signup" ? "new-password" : "current-password"; $("#autherr").textContent = "";
+});
+$("#authForm").onsubmit = async e => {
+  e.preventDefault(); $("#autherr").textContent = ""; $("#authGo").disabled = true;
+  try { showApp(await api("/api/" + mode, {method: "POST", body: {name: $("#aname").value, email: $("#aemail").value, password: $("#apass").value}})); $("#apass").value = ""; }
+  catch (x) { $("#autherr").textContent = x.message; }
+  $("#authGo").disabled = false;
+};
+$("#logout").onclick = async () => { await fetch("/api/logout", {method: "POST"}); reset(); showAuth(); };
+
+/* history */
+const when = t => { const m = (Date.now() / 1000 - t) / 60; return m < 1 ? "just now" : m < 60 ? Math.round(m) + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " d ago"; };
+async function loadHistory() {
+  const rows = await api("/api/runs"); renderProg(rows);
+  $("#hist").innerHTML = rows.length ? rows.map(r => `<li><button class="h ${r.id === active ? "on" : ""}" data-open="${r.id}">
+    <b>${esc(r.title)}</b><span>${esc(r.repo)}</span><span>${esc(r.kind === "plan" ? "Draft" : "Issues")}, ${when(r.created)}</span>${r.pr_url ? `<span>PR ${esc(r.pr_state || "open")}</span>` : ""}</button>
+    <button class="x" data-del="${r.id}" aria-label="Delete ${esc(r.title)}">×</button></li>`).join("") : '<li class="empty">Your searches and drafts are saved here.</li>';
+}
+function reset() { active = planRun = null; $("#out").hidden = true; $("#out").innerHTML = ""; busy(); }
+
+/* progress */
+function busy(msg) {
+  clearInterval(ticker); $("#error").style.display = "none"; $("#steps").innerHTML = "";
+  if (!msg) { $("#status").textContent = ""; $("#go").disabled = false; return; }
+  const t0 = Date.now(); $("#go").disabled = true;
+  const tick = () => $("#status").textContent = `${msg} ${Math.round((Date.now() - t0) / 1000)}s`;
+  tick(); ticker = setInterval(tick, 1000);
+}
+function fail(e) { busy(); const x = $("#error"); x.textContent = e.message; x.style.display = "block"; }
+
+/* screenshot */
+$("#shotBtn").onclick = () => $("#shot").click();
+$("#shot").onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  if (f.size > 3e6) { fail(new Error("Screenshot is over 3 MB.")); e.target.value = ""; return; }
+  const rd = new FileReader();
+  rd.onload = () => { shot = {b64: rd.result.split(",")[1], mime: f.type}; $("#shotname").textContent = f.name + " (attached)"; };
+  rd.readAsDataURL(f);
+};
+
+/* live progress: the server streams each step as it happens */
+function step(msg) {
+  const ul = $("#steps"); ul.querySelectorAll("li").forEach(l => l.classList.add("done"));
+  const li = document.createElement("li"); li.textContent = msg; ul.append(li);
+}
+async function stream(path, body) {
+  const extra = {...(localStorage.getItem("fp_key") ? {"X-Gemini-Key": localStorage.getItem("fp_key")} : {}), ...(localStorage.getItem("fp_local") === "1" ? {"X-Backend": "ollama"} : {})};
+  const r = await fetch(path + "?stream=1", {method: "POST", headers: {"Content-Type": "application/json", ...extra}, body: JSON.stringify(body)});
+  if (r.status === 401) { showAuth(); throw new Error("Please sign in."); }
+  if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.detail || "Request failed"); }
+  const rd = r.body.getReader(), dec = new TextDecoder(); let buf = "", out;
+  for (;;) {
+    const {done, value} = await rd.read(); if (done) break;
+    buf += dec.decode(value, {stream: true});
+    for (let i; (i = buf.indexOf("\n")) >= 0;) {
+      const line = buf.slice(0, i); buf = buf.slice(i + 1); if (!line) continue;
+      const m = JSON.parse(line);
+      if (m.t === "progress") step(m.msg); else if (m.t === "error") throw new Error(m.detail); else out = m.data;
+    }
+  }
+  if (!out) throw new Error("The connection closed before the result arrived. Please try again.");
+  return out;
+}
+
+/* search */
+$("#f").addEventListener("submit", async ev => {
+  ev.preventDefault(); last = {repo: $("#repo").value.trim(), skills: $("#skills").value.trim()};
+  $("#out").hidden = true; busy("Gemma is reading the repository and issues…");
+  try { const r = await stream("/api/analyze", {...last, ground: $("#ground").checked, lang}); busy(); active = r.run_id; renderIssues(r); loadHistory(); }
+  catch (e) { fail(e); }
+});
+function renderIssues(r) {
+  const o = $("#out"); o.hidden = false;
+  o.innerHTML = `<section class="node"><h2>${esc(r.repo)}</h2><p>${esc(r.summary)}</p>` + r.issues.map(i => `<article class="issue">
+    <div class="meta"><span>#${i.number}</span><span class="bar" title="Fit ${i.fit}"><i style="width:${Math.min(100, +i.fit || 0)}%"></i></span><span>fit ${esc(i.fit)}</span><span>${esc(i.difficulty)}</span></div>
+    <h3><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.title)}</a></h3><p>${esc(i.why)}</p>
+    <p><strong>${tr("Start with:")}</strong> ${esc(i.first_step)}</p><button class="btn ghost" data-pick="${i.number}">${tr("Draft my PR for")} #${i.number}</button></article>`).join("") +
+    `</section><div id="plan"></div>`;
+}
+
+/* plan */
+const copyBox = (id, t, x) => `<div class="copy"><div class="top2"><span>${t}</span><button class="btn ghost" data-copy="${id}">${tr("Copy")}</button></div><pre id="${id}">${esc(x)}</pre></div>`;
+const MARK = {ok: "ok", fail: "fix", warn: "look", todo: "todo"};
+function renderPlan(p, meta = {}) {
+  const d = p.draft; $("#out").hidden = false;
+  if (!$("#plan")) $("#out").innerHTML = '<div id="plan"></div>';
+  $("#plan").innerHTML = `
+  <section class="node"><h2>${tr("What the issue needs")}</h2><p>${esc(d.understanding)}</p><h2>${tr("Code to read first")}</h2><ul>${(d.relevant_code || []).map(c =>
+    `<li><a href="https://github.com/${esc(p.repo)}/blob/HEAD/${esc(c.path)}" target="_blank" rel="noopener"><code>${esc(c.path)}</code></a>: ${esc(c.why)}</li>`).join("")}</ul></section>
+  <section class="node"><h2>${tr("Plan")}</h2><ol>${(d.plan || []).map(s => `<li>${esc(s)}</li>`).join("")}</ol><p><strong>${tr("Verify:")}</strong> ${esc(d.tests)}</p>${d.risks ? `<p><strong>${tr("Watch out for:")}</strong> ${esc(d.risks)}</p>` : ""}</section>
+  ${guardHTML(p)}<section class="node"><h2>${tr("Your branch, commit and PR")}</h2>${d.claim_comment ? copyBox("c0", "Comment to claim the issue", d.claim_comment) : ""}
+    ${copyBox("c1", "Branch", d.branch)}${copyBox("c2", "Commit message", d.commit_message)}${copyBox("c3", "PR title", d.pr_title)}${copyBox("c4", "PR description", d.pr_body)}${p.kit ? copyBox("c5", tr("Git commands"), p.kit) : ""}
+    <button class="btn ghost" data-dl="1">Download as Markdown</button></section>
+  <section class="node"><h2>${tr("Checked against this project's rules")}</h2><ul class="checks">${p.checks.map(c =>
+    `<li class="s-${esc(c.status)}"><b>${MARK[c.status] || ""}</b><span>${esc(c.rule)} <small>${esc(c.note)}</small></span></li>`).join("")}</ul>
+    <details><summary>What Gemma did</summary><ul>${p.trace.map(t => `<li><code>${esc(t)}</code></li>`).join("")}</ul></details></section>
+  <section class="node"><h2>${tr("Track your pull request")}</h2><div id="track"></div></section>
+  <section class="node"><h2>${tr("Ask your mentor")}</h2><div class="chat" id="chat"></div>
+    <div class="ask"><input type="text" id="q" maxlength="500" placeholder="How do I run the tests? What does this file do?"><button class="btn" id="askBtn">${tr("Ask")}</button></div></section>`;
+  window._plan = p; renderTrack(meta);
+}
+const guardHTML = p => p.guard ? `<section class="node"><h2>${tr("Spam guard")}</h2><ul class="checks">${p.guard.map(c =>
+  `<li class="s-${esc(c.status)}"><b>${MARK[c.status] || ""}</b><span>${esc(c.rule)} <small>${esc(c.note)}</small></span></li>`).join("")}</ul></section>` : "";
+function renderTrack(m) {
+  const url = m.pr_url, st = m.pr_state || "open";
+  $("#track").innerHTML = url
+    ? `<p>Status: <b>${esc(st)}</b>. <a href="${esc(url)}" target="_blank" rel="noopener">Open the PR</a></p><div class="row"><button class="btn ghost" data-prrefresh="1">Check status</button><button class="btn ghost" data-prclear="1">Remove link</button></div>`
+    : `<p class="lab">After you open the PR on GitHub, paste its link here to track it.</p><div class="ask"><input type="text" id="prUrl" placeholder="https://github.com/owner/repo/pull/123"><button class="btn" data-prsave="1">Save</button></div>`;
+}
+const GOAL = 6;
+function renderProg(rows) {
+  const o = rows.filter(r => r.pr_url).length, m = rows.filter(r => r.pr_state === "merged").length;
+  $("#prog").innerHTML = `<b>${o} pull request${o === 1 ? "" : "s"} opened</b><span>${m} merged</span><div class="bar"><i style="width:${Math.min(100, o / GOAL * 100)}%"></i></div><small>Goal: ${GOAL}</small>`;
+}
+function addMsg(role, text) { const m = document.createElement("div"); m.className = "msg " + role; m.textContent = text; $("#chat").append(m); return m; }
+async function ask() {
+  const q = $("#q").value.trim(); if (!q || !planRun) return; $("#q").value = ""; addMsg("user", q);
+  const w = addMsg("ai", "Thinking…"); $("#askBtn").disabled = true;
+  try { w.textContent = (await api(`/api/runs/${planRun}/ask`, {method: "POST", body: {question: q, lang}})).answer; } catch (e) { w.textContent = e.message; }
+  $("#askBtn").disabled = false;
+}
+function markdown(p) {
+  const d = p.draft;
+  return `# ${d.pr_title}\n\nRepo: ${p.repo}, issue #${p.issue}\n\n## Plan\n${(d.plan || []).map((s, i) => `${i + 1}. ${s}`).join("\n")}\n\n## Branch\n\`${d.branch}\`\n\n## Commit\n\`\`\`\n${d.commit_message}\n\`\`\`\n\n## PR description\n${d.pr_body}\n`;
+}
+
+/* clicks */
+document.addEventListener("click", async ev => {
+  const t = ev.target.closest("button"); if (!t) return; const d = t.dataset;
+  if ("go" in d) { me ? showApp(me) : view("auth"); }
+  if ("home" in d) { closeMenu(); view("landing"); }
+  if (d.prsave || d.prrefresh || d.prclear) {
+    try {
+      const base = `/api/runs/${planRun}/pr`;
+      const res = d.prrefresh ? await api(base + "/refresh", {method: "POST"}) : await api(base, {method: "POST", body: {url: d.prclear ? "" : $("#prUrl").value.trim()}});
+      renderTrack(res); loadHistory();
+    } catch (e) { fail(e); }
+  }
+  if (d.copy) { await navigator.clipboard.writeText($("#" + d.copy).textContent); t.textContent = "Copied"; setTimeout(() => t.textContent = tr("Copy"), 1500); }
+  if (d.dl) { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([markdown(window._plan)], {type: "text/markdown"})); a.download = "firstpr-draft.md"; a.click(); }
+  if (d.pick) {
+    busy(`Gemma is reading the code for #${d.pick}…`);
+    try {
+      const body = {...last, issue: +d.pick, lang}; if (shot) { body.image_b64 = shot.b64; body.image_mime = shot.mime; }
+      const p = await stream("/api/plan", body); busy(); planRun = active = p.run_id; renderPlan(p); loadHistory();
+      $("#plan").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion:reduce)").matches ? "auto" : "smooth"});
+    } catch (e) { fail(e); }
+  }
+  if (d.open) {
+    closeMenu(); busy();
+    try {
+      const r = await api("/api/runs/" + d.open); active = r.id; last = {repo: r.repo, skills: r.payload.skills || ""};
+      $("#repo").value = r.repo; $("#skills").value = last.skills;
+      if (r.kind === "plan") { planRun = r.id; renderPlan(r.payload, r); r.chat.forEach(m => addMsg(m.role, m.text)); } else { planRun = null; renderIssues(r.payload); }
+      loadHistory(); window.scrollTo({top: 0});
+    } catch (e) { fail(e); }
+  }
+  if (d.del) { await api("/api/runs/" + d.del, {method: "DELETE"}); if (+d.del === active) reset(); loadHistory(); }
+  if (t.id === "askBtn") ask();
+  if (t.id === "newBtn") { reset(); $("#f").reset(); shot = null; $("#shotname").textContent = "Optional. Gemma uses it when you draft a PR."; closeMenu(); window.scrollTo({top: 0}); }
+});
+document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.id === "q") ask(); if (e.key === "Escape") closeMenu(); });
+const closeMenu = () => { $("#side").classList.remove("open"); $("#scrim").classList.remove("on"); $("#menu").setAttribute("aria-expanded", "false"); };
+$("#menu").onclick = () => { $("#side").classList.add("open"); $("#scrim").classList.add("on"); $("#menu").setAttribute("aria-expanded", "true"); };
+$("#scrim").onclick = closeMenu;
+
+/* pumpkin: pupils follow the pointer */
+for (const t of ["#heroDevi", "#devi"]) { const h = $(t); h.innerHTML = $("#deviSvg").innerHTML; const a = h.querySelector(".arms"), c = a.cloneNode(true); c.setAttribute("transform", "translate(200 0) scale(-1 1)"); a.after(c); }
+const pupils = $$(".pupil"); let px = innerWidth / 2, py = innerHeight / 2, raf = 0;
+function look() {
+  raf = 0;
+  for (const p of pupils) {
+    const b = p.previousElementSibling.getBoundingClientRect(), dx = px - (b.left + b.width / 2), dy = py - (b.top + b.height / 2), n = Math.hypot(dx, dy) || 1, k = Math.min(3.4, n / 40);
+    p.style.transform = `translate(${dx / n * k}px, ${dy / n * k * 0.55}px)`;
+  }
+}
+addEventListener("pointermove", e => { px = e.clientX; py = e.clientY; if (!raf) raf = requestAnimationFrame(look); }, {passive: true});
+look();
+
+/* language, key, voice, scoreboard */
+document.addEventListener("click", e => { if (e.target.closest(".langtog")) { lang = lang === "bn" ? "en" : "bn"; try { localStorage.setItem("fp_lang", lang); } catch (_) {} applyLang(); } });
+const showMode = () => $("#modeLine").textContent = localStorage.getItem("fp_local") === "1" ? "Running on local Gemma through Ollama" : "Running on the Gemini API";
+$("#keyBtn").onclick = async () => {
+  $("#keyIn").value = localStorage.getItem("fp_key") || ""; $("#localChk").checked = localStorage.getItem("fp_local") === "1";
+  $("#localInfo").textContent = "Checking Ollama…"; $("#keyDlg").showModal();
+  try { const j = await (await fetch("/api/local")).json(); if (j.hosted) { $("#localChk").checked = false; $("#localChk").disabled = true; $("#localInfo").textContent = "Local mode works when you run FirstPR on your own computer."; return; } $("#localInfo").textContent = !j.up ? `Ollama was not found on this machine. Install it from ollama.com, then run: ollama pull ${j.model}` : j.has_model ? `Ollama is running and ${j.model} is installed.` : `Ollama is running. Install the model with: ollama pull ${j.model}`; } catch (_) { $("#localInfo").textContent = ""; }
+};
+$("#keyForm").addEventListener("submit", e => { if (e.submitter && e.submitter.value === "save") { localStorage.setItem("fp_key", $("#keyIn").value.trim()); localStorage.setItem("fp_local", $("#localChk").checked ? "1" : "0"); showMode(); } });
+$("#keyClear").onclick = () => { localStorage.removeItem("fp_key"); $("#keyIn").value = ""; $("#keyDlg").close(); };
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (SR) $("#micBtn").hidden = false;
+$("#micBtn").onclick = () => {
+  const r = new SR(), b = $("#micBtn"); r.lang = lang === "bn" ? "bn-IN" : "en-IN"; b.textContent = tr("Listening…");
+  r.onresult = e => { const x = $("#skills"); x.value = (x.value ? x.value + ", " : "") + e.results[0][0].transcript; };
+  r.onerror = e => fail(new Error("Voice input failed: " + e.error));
+  r.onend = () => b.textContent = tr("Speak your skills"); r.start();
+};
+fetch("/api/scoreboard").then(r => r.json()).then(j => {
+  const s = j.summary; if (!s) return; $("#board").hidden = false;
+  $("#tiles").innerHTML = [[s.first_pass_clean + "%", "of drafts passed every rule check first time"], [s.clean_after_repair + "%", "passed after Gemma's self-repair"],
+    [s.paths_real + "%", "of cited file paths really exist"], [s.avg_tool_calls, "GitHub tool calls per draft"]].map(([a, b]) => `<div class="tile"><b>${esc(a)}</b><span>${esc(b)}</span></div>`).join("");
+  $("#boardnote").textContent = `${s.completed} of ${s.repos} repositories, ${s.model}, ${s.date}`;
+}).catch(() => 0);
+
+/* start */
+document.body.classList.add("landing"); applyLang(); showMode();
+fetch("/api/me").then(r => r.ok ? r.json().then(u => { me = u; setCta(); }) : 0).catch(() => 0);
+</script>
+</body>
+</html>
