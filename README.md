@@ -4,6 +4,12 @@ Paste a GitHub repo and your skills. **FirstPR** (built on **Gemma 4**) reads th
 
 Ships three ways: a **web UI**, a **CLI**, and an **Agent Skill** (`skill/firstpr/SKILL.md`).
 
+## Screenshots
+
+![Landing page](screenshots/landing.png)
+![Issues page](screenshots/page.png)
+![Bengali page](screenshots/bengali.png)
+
 ## Quick start
 
 ```bash
